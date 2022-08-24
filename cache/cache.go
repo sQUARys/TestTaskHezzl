@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
-	pb "github.com/sQUARys/TestTaskHezzl/proto"
+	"github.com/sQUARys/TestTaskHezzl/user"
 	"time"
 )
 
@@ -26,17 +26,18 @@ func New() *Cache {
 	}
 }
 
-func (c *Cache) Get(key string) pb.User {
+func (c *Cache) Get(key string) user.User {
 	valJSON, err := c.Client.Get(key).Result()
 	if err != nil {
 		fmt.Println(err)
 	}
-	var val pb.User
+	var val user.User
 	json.Unmarshal([]byte(valJSON), &val)
+
 	return val
 }
 
-func (c *Cache) Set(user pb.User) {
+func (c *Cache) Set(user user.User) {
 	userJSON, err := json.Marshal(user)
 	if err != nil {
 		fmt.Println(err)
@@ -47,10 +48,10 @@ func (c *Cache) Set(user pb.User) {
 	}
 }
 
-func (c *Cache) GetAll() []pb.User {
+func (c *Cache) GetAll() []user.User {
 	iter := c.Client.Scan(0, "", 0).Iterator()
 
-	var users []pb.User
+	var users []user.User
 
 	for iter.Next() {
 		user := c.Get(iter.Val())
