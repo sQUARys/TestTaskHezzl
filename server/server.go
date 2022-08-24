@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sQUARys/TestTaskHezzl/cache"
 	pb "github.com/sQUARys/TestTaskHezzl/proto"
 	"github.com/sQUARys/TestTaskHezzl/repositories"
 	"golang.org/x/net/context"
@@ -12,23 +13,43 @@ import (
 
 type Server struct {
 	pb.UnimplementedUserServiceServer
+	repo  Repository
+	cache Cache
+}
+
+type Repository interface {
+	AddUser(user *pb.User) error
+	DeleteUser(id int32) error
+}
+
+type Cache interface {
+	Set(user pb.User)
+	Get(key string) pb.User
+	GetAll() []pb.User
 }
 
 func main() {
-	listener, err := net.Listen("tcp", "127.0.0.1:8080")
+	listener, err := net.Listen("tcp", "localhost:8080")
 	if err != nil {
 		grpclog.Fatalf("failed to listen: %v", err)
 	}
 	options := []grpc.ServerOption{}
 	server := grpc.NewServer(options...)
 
-	pb.RegisterUserServiceServer(server, &Server{})
+	db := repositories.New()
+	c := cache.New()
+
+	pb.RegisterUserServiceServer(server, &Server{
+		repo:  db,
+		cache: c,
+	})
 	server.Serve(listener)
 }
 
 func (s *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	db := repositories.New()
-	db.AddUser(request.User)
+	s.repo.AddUser(request.User)
+
+	s.cache.Set(*request.User)
 
 	return &pb.CreateUserResponse{
 		User: request.User,
@@ -37,16 +58,17 @@ func (s *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequest) 
 }
 
 func (s *Server) DeleteUser(ctx context.Context, request *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-	db := repositories.New()
-	db.DeleteUser(request.Id)
+	s.repo.DeleteUser(request.Id)
 	fmt.Println("GOT : ", request.Id)
 
 	return nil, nil
 }
 
 func (s *Server) ListUser(request *pb.ListUserRequest, server pb.UserService_ListUserServer) error {
-	//TODO implement me
-	fmt.Println("List")
+	s.cache.Set(pb.User{Id: 1, Name: "OLEG"})
+	s.cache.Set(pb.User{Id: 2, Name: "IGOR"})
+	fmt.Println("GET ALL")
 
+	fmt.Println(s.cache.GetAll())
 	return nil
 }
