@@ -21,6 +21,8 @@ const (
 
 	dbInsertFormat = `INSERT INTO user_table ( "id", "name") VALUES ( %d ,'%s');`
 	dbDeleteFormat = `DELETE FROM user_table WHERE id = %d;`
+
+	clickHouseInsertFormat = `INSERT INTO log_table ( "id", "body") VALUES ( %d ,'%s');`
 )
 
 type Repository struct {
@@ -45,6 +47,32 @@ func New() *Repository {
 	}
 
 	return &repo
+}
+
+func NewClickH() *Repository {
+	db, err := sql.Open("clickhouse", "tcp://127.0.0.1:9000?username=&compress=true&debug=true")
+	checkErr(err)
+	checkErr(db.Ping())
+
+	return &Repository{
+		DbStruct: db,
+	}
+}
+
+func (repo *Repository) AddLog(id int, log string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	dbInsertRequest := fmt.Sprintf(dbInsertFormat, id, log)
+
+	_, err := repo.DbStruct.ExecContext(
+		ctx,
+		dbInsertRequest,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (repo *Repository) AddUser(user *pb.User) error {
