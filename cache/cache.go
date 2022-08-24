@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
-	"github.com/sQUARys/TestTaskHezzl/user"
+	pb "github.com/sQUARys/TestTaskHezzl/proto"
 	"time"
 )
 
@@ -26,36 +26,36 @@ func New() *Cache {
 	}
 }
 
-func (c *Cache) Get(key string) user.User {
+func (c *Cache) GetUser(key string) pb.User {
 	valJSON, err := c.Client.Get(key).Result()
 	if err != nil {
 		fmt.Println(err)
 	}
-	var val user.User
+	var val pb.User
 	json.Unmarshal([]byte(valJSON), &val)
 
 	return val
 }
 
-func (c *Cache) Set(user user.User) {
+func (c *Cache) SetUser(user pb.User) {
 	userJSON, err := json.Marshal(user)
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = c.Client.Set(user.Name, userJSON, 10*time.Second).Err()
+	err = c.Client.Set(user.Name, userJSON, time.Minute).Err()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func (c *Cache) GetAll() []user.User {
+func (c *Cache) GetUsers() []*pb.User {
 	iter := c.Client.Scan(0, "", 0).Iterator()
 
-	var users []user.User
+	var users []*pb.User
 
 	for iter.Next() {
-		user := c.Get(iter.Val())
-		users = append(users, user)
+		user := c.GetUser(iter.Val())
+		users = append(users, &user)
 	}
 
 	if err := iter.Err(); err != nil {
@@ -63,4 +63,8 @@ func (c *Cache) GetAll() []user.User {
 	}
 	return users
 
+}
+
+func (c *Cache) DeleteUser(key string) {
+	c.Client.Del(key)
 }

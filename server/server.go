@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/sQUARys/TestTaskHezzl/cache"
 	pb "github.com/sQUARys/TestTaskHezzl/proto"
 	"github.com/sQUARys/TestTaskHezzl/repositories"
-	"github.com/sQUARys/TestTaskHezzl/user"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -24,9 +22,10 @@ type Repository interface {
 }
 
 type Cache interface {
-	Set(user user.User)
-	Get(key string) user.User
-	GetAll() []user.User
+	SetUser(user pb.User)
+	GetUser(key string) pb.User
+	DeleteUser(key string)
+	GetUsers() []*pb.User
 }
 
 func main() {
@@ -50,12 +49,7 @@ func main() {
 func (s *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	s.repo.AddUser(request.User)
 
-	user := user.User{
-		Id:   request.User.Id,
-		Name: request.User.Name,
-	}
-
-	s.cache.Set(user)
+	s.cache.SetUser(*request.User)
 
 	return &pb.CreateUserResponse{
 		User: request.User,
@@ -65,15 +59,12 @@ func (s *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequest) 
 
 func (s *Server) DeleteUser(ctx context.Context, request *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
 	s.repo.DeleteUser(request.Id)
-	fmt.Println("GOT : ", request.Id)
-
 	return nil, nil
 }
 
-func (s *Server) ListUser(request *pb.ListUserRequest, server pb.UserService_ListUserServer) error {
-	s.cache.Set(user.User{Id: 1, Name: "OLEG"})
-	s.cache.Set(user.User{Id: 2, Name: "IGOR"})
-
-	fmt.Println(s.cache.GetAll())
-	return nil
+func (s *Server) ListUser(ctx context.Context, request *pb.ListUserRequest) (*pb.ListUserResponse, error) {
+	Users := s.cache.GetUsers()
+	return &pb.ListUserResponse{
+		User: Users,
+	}, nil
 }
