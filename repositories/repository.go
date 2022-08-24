@@ -20,6 +20,7 @@ const (
 	connectionStringFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable"
 
 	dbInsertFormat = `INSERT INTO user_table ( "id", "name") VALUES ( %d ,'%s');`
+	dbDeleteFormat = `DELETE FROM user_table WHERE id = %d;`
 )
 
 type Repository struct {
@@ -55,6 +56,22 @@ func (repo *Repository) AddUser(user *pb.User) error {
 	_, err := repo.DbStruct.ExecContext(
 		ctx,
 		dbInsertRequest,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *Repository) DeleteUser(id int32) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	dbDeleteRequest := fmt.Sprintf(dbDeleteFormat, id)
+
+	_, err := repo.DbStruct.ExecContext(
+		ctx,
+		dbDeleteRequest,
 	)
 	if err != nil {
 		return err

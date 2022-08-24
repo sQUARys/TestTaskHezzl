@@ -27,16 +27,18 @@ func main() {
 }
 
 func (s *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	//TODO implement me
-	fmt.Println("Create : ", request)
 	db := repositories.New()
 	db.AddUser(request.User)
-	return nil, nil
+
+	return &pb.CreateUserResponse{
+		User: request.User,
+	}, nil
 
 }
 
 func (s *Server) DeleteUser(ctx context.Context, request *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-	//TODO implement me
+	db := repositories.New()
+	db.DeleteUser(request.Id)
 	fmt.Println("GOT : ", request.Id)
 
 	return nil, nil

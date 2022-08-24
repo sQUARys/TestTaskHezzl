@@ -23,28 +23,28 @@ func main() {
 
 	client := pb.NewUserServiceClient(conn)
 
-	createRequest := &pb.CreateUserRequest{
-		User: &pb.User{
-			Id:   2,
-			Name: "John",
-		},
-	}
-
-	//deleteRequest := &pb.DeleteUserRequest{
-	//	Id: 1,
+	//createRequest := &pb.CreateUserRequest{
+	//	User: &pb.User{
+	//		Id:   2,
+	//		Name: "John",
+	//	},
 	//}
+
+	deleteRequest := &pb.DeleteUserRequest{
+		Id: 2,
+	}
 
 	//listRequest := &pb.ListUserRequest{}
 
 	ctx := context.Background()
 
-	createResp, err := client.CreateUser(ctx, createRequest)
-	//deleteResp, err := client.DeleteUser(ctx, deleteRequest)
+	//createResp, err := client.CreateUser(ctx, createRequest)
+	deleteResp, err := client.DeleteUser(ctx, deleteRequest)
 	//listResp, err := client.ListUser(ctx, listRequest)
 
 	if err != nil {
 		grpclog.Fatalf("fail to dial: %v", err)
 	}
 
-	fmt.Println(createResp)
+	fmt.Println(deleteResp)
 }
