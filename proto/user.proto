@@ -36,6 +36,6 @@ message ListUserResponse {
 
 service UserService{
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
-  rpc DeletePokemon (DeleteUserRequest) returns (DeleteUserResponse);
-  rpc ListPokemon (ListUserRequest) returns (stream ListUserResponse);
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+  rpc ListUser (ListUserRequest) returns (stream ListUserResponse);
 }

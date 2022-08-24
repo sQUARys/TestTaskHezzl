@@ -23,8 +23,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
-	DeletePokemon(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
-	ListPokemon(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (UserService_ListPokemonClient, error)
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (UserService_ListUserClient, error)
 }
 
 type userServiceClient struct {
@@ -44,21 +44,21 @@ func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReques
 	return out, nil
 }
 
-func (c *userServiceClient) DeletePokemon(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
 	out := new(DeleteUserResponse)
-	err := c.cc.Invoke(ctx, "/userProto.UserService/DeletePokemon", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/userProto.UserService/DeleteUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userServiceClient) ListPokemon(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (UserService_ListPokemonClient, error) {
-	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], "/userProto.UserService/ListPokemon", opts...)
+func (c *userServiceClient) ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (UserService_ListUserClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], "/userProto.UserService/ListUser", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &userServiceListPokemonClient{stream}
+	x := &userServiceListUserClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -68,16 +68,16 @@ func (c *userServiceClient) ListPokemon(ctx context.Context, in *ListUserRequest
 	return x, nil
 }
 
-type UserService_ListPokemonClient interface {
+type UserService_ListUserClient interface {
 	Recv() (*ListUserResponse, error)
 	grpc.ClientStream
 }
 
-type userServiceListPokemonClient struct {
+type userServiceListUserClient struct {
 	grpc.ClientStream
 }
 
-func (x *userServiceListPokemonClient) Recv() (*ListUserResponse, error) {
+func (x *userServiceListUserClient) Recv() (*ListUserResponse, error) {
 	m := new(ListUserResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -90,8 +90,8 @@ func (x *userServiceListPokemonClient) Recv() (*ListUserResponse, error) {
 // for forward compatibility
 type UserServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
-	DeletePokemon(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
-	ListPokemon(*ListUserRequest, UserService_ListPokemonServer) error
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	ListUser(*ListUserRequest, UserService_ListUserServer) error
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -102,11 +102,11 @@ type UnimplementedUserServiceServer struct {
 func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUserServiceServer) DeletePokemon(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePokemon not implemented")
+func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
-func (UnimplementedUserServiceServer) ListPokemon(*ListUserRequest, UserService_ListPokemonServer) error {
-	return status.Errorf(codes.Unimplemented, "method ListPokemon not implemented")
+func (UnimplementedUserServiceServer) ListUser(*ListUserRequest, UserService_ListUserServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListUser not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -139,42 +139,42 @@ func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_DeletePokemon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).DeletePokemon(ctx, in)
+		return srv.(UserServiceServer).DeleteUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/userProto.UserService/DeletePokemon",
+		FullMethod: "/userProto.UserService/DeleteUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).DeletePokemon(ctx, req.(*DeleteUserRequest))
+		return srv.(UserServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_ListPokemon_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _UserService_ListUser_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ListUserRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(UserServiceServer).ListPokemon(m, &userServiceListPokemonServer{stream})
+	return srv.(UserServiceServer).ListUser(m, &userServiceListUserServer{stream})
 }
 
-type UserService_ListPokemonServer interface {
+type UserService_ListUserServer interface {
 	Send(*ListUserResponse) error
 	grpc.ServerStream
 }
 
-type userServiceListPokemonServer struct {
+type userServiceListUserServer struct {
 	grpc.ServerStream
 }
 
-func (x *userServiceListPokemonServer) Send(m *ListUserResponse) error {
+func (x *userServiceListUserServer) Send(m *ListUserResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -190,14 +190,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_CreateUser_Handler,
 		},
 		{
-			MethodName: "DeletePokemon",
-			Handler:    _UserService_DeletePokemon_Handler,
+			MethodName: "DeleteUser",
+			Handler:    _UserService_DeleteUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "ListPokemon",
-			Handler:       _UserService_ListPokemon_Handler,
+			StreamName:    "ListUser",
+			Handler:       _UserService_ListUser_Handler,
 			ServerStreams: true,
 		},
 	},
