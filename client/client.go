@@ -22,8 +22,10 @@ func main() {
 	defer conn.Close()
 
 	client := pb.NewUserServiceClient(conn)
+
 	ctx := context.Background()
 
+	//Special request to Create New User
 	createRequest := &pb.CreateUserRequest{
 		User: &pb.User{
 			Id:   2,
@@ -31,10 +33,12 @@ func main() {
 		},
 	}
 
+	//Special request to Delete User
 	//deleteRequest := &pb.DeleteUserRequest{
 	//	Id: 2,
 	//}
 
+	//Special request for Get List Users
 	listRequest := &pb.ListUserRequest{}
 
 	createResp, err := client.CreateUser(ctx, createRequest)
