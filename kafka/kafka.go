@@ -65,26 +65,26 @@ func New() *Kafka {
 		writer: w,
 		reader: r,
 	}
-
 }
 
-//
-func (k *Kafka) ReadLog(ctx context.Context) {
+func (k *Kafka) ReadLog(ctx context.Context) error {
 
 	msg, err := k.reader.ReadMessage(ctx)
 	if err != nil {
-		panic("could not read message " + err.Error())
+		return err
 	}
 
 	fmt.Println("received: ", string(msg.Value))
+	return nil
 }
 
-func (k *Kafka) WriteLog(log string, ctx context.Context) {
+func (k *Kafka) WriteLog(log string, ctx context.Context) error {
 
 	err := k.writer.WriteMessages(ctx, kafka.Message{
 		Value: []byte(log),
 	})
 	if err != nil {
-		panic("could not write message " + err.Error())
+		return err
 	}
+	return nil
 }
