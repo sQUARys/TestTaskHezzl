@@ -29,7 +29,7 @@ func New() *Cache {
 func (c *Cache) GetUser(key string) (pb.User, error) {
 	valJSON, err := c.Client.Get(key).Result()
 	if err != nil {
-		return nil, err
+		return pb.User{}, err
 	}
 	var val pb.User
 	json.Unmarshal([]byte(valJSON), &val)
