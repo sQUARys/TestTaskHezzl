@@ -26,42 +26,46 @@ func New() *Cache {
 	}
 }
 
-func (c *Cache) GetUser(key string) pb.User {
+func (c *Cache) GetUser(key string) (pb.User, error) {
 	valJSON, err := c.Client.Get(key).Result()
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	var val pb.User
 	json.Unmarshal([]byte(valJSON), &val)
 
-	return val
+	return val, nil
 }
 
-func (c *Cache) SetUser(user pb.User) {
+func (c *Cache) SetUser(user pb.User) error {
 	userJSON, err := json.Marshal(user)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	err = c.Client.Set(user.Name, userJSON, time.Minute).Err()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+	return nil
 }
 
-func (c *Cache) GetUsers() []*pb.User {
+func (c *Cache) GetUsers() ([]*pb.User, error) {
 	iter := c.Client.Scan(0, "", 0).Iterator()
 
 	var users []*pb.User
 
 	for iter.Next() {
-		user := c.GetUser(iter.Val())
+		user, err := c.GetUser(iter.Val())
+		if err != nil {
+			return nil, err
+		}
 		users = append(users, &user)
 	}
 
 	if err := iter.Err(); err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
-	return users
+	return users, nil
 
 }
 

@@ -3,6 +3,7 @@ module github.com/sQUARys/TestTaskHezzl
 go 1.18
 
 require (
+	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/lib/pq v1.10.6
 	github.com/segmentio/kafka-go v0.4.34
