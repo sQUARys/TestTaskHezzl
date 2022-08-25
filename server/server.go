@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/sQUARys/TestTaskHezzl/cache"
+	"github.com/sQUARys/TestTaskHezzl/kafka"
 	pb "github.com/sQUARys/TestTaskHezzl/proto"
 	"github.com/sQUARys/TestTaskHezzl/repositories"
+	kafkaLib "github.com/segmentio/kafka-go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
+	"log"
 	"net"
 )
 
@@ -38,6 +43,33 @@ func main() {
 
 	db := repositories.New()
 	c := cache.New()
+
+	// KAFKA
+	kfk := kafka.New()
+	ctx := context.Background()
+	fmt.Println("KAFKA : ", kfk)
+	var (
+		buf    bytes.Buffer
+		logger = log.New(&buf, "INFO: ", log.Lshortfile)
+
+		infof = func(info string) {
+			logger.Output(2, info)
+		}
+	)
+	infof("Hello world")
+
+	//kfk.WriteLog("log", fmt.Sprintf("INSERT INTO logs_try (readings_id , message) VALUES (%d , %s)", 1, "HELLO"), ctx)
+
+	err = kfk.Writer.WriteMessages(ctx, kafkaLib.Message{
+		Key: []byte("key"),
+		// create an arbitrary message payload for the value
+		Value: []byte(buf.String()),
+	})
+	if err != nil {
+		panic("could not write message " + err.Error())
+	}
+	fmt.Println("KAFKA  WRITE ")
+	//kfk.ReadLog(ctx)
 
 	pb.RegisterUserServiceServer(server, &Server{
 		repo:  db,
