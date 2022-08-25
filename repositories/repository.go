@@ -63,7 +63,7 @@ func (repo *Repository) AddLog(id int, log string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	dbInsertRequest := fmt.Sprintf(dbInsertFormat, id, log)
+	dbInsertRequest := fmt.Sprintf(clickHouseInsertFormat, id, log)
 
 	_, err := repo.DbStruct.ExecContext(
 		ctx,
@@ -105,4 +105,10 @@ func (repo *Repository) DeleteUser(id int32) error {
 		return err
 	}
 	return nil
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
