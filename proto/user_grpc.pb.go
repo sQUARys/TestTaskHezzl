@@ -62,7 +62,7 @@ func (c *userServiceClient) ListUser(ctx context.Context, in *ListUserRequest, o
 	return out, nil
 }
 
-// UserServiceServer is the server API for UserService service.
+// UserServiceServer is the controllers API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {

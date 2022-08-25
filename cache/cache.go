@@ -37,7 +37,7 @@ func (c *Cache) GetUser(key string) (pb.User, error) {
 	return val, nil
 }
 
-func (c *Cache) SetUser(user pb.User) error {
+func (c *Cache) AddUser(user pb.User) error {
 	userJSON, err := json.Marshal(user)
 	if err != nil {
 		return err
@@ -69,6 +69,6 @@ func (c *Cache) GetUsers() ([]*pb.User, error) {
 
 }
 
-func (c *Cache) DeleteUser(key string) {
-	c.Client.Del(key)
+func (c *Cache) DeleteUser(name string) {
+	c.Client.Del(name)
 }

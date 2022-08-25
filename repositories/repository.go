@@ -20,9 +20,7 @@ const (
 	connectionStringFormat = "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable"
 
 	dbInsertFormat = `INSERT INTO user_table ( "id", "name") VALUES ( %d ,'%s');`
-	dbDeleteFormat = `DELETE FROM user_table WHERE id = %d;`
-
-	clickHouseInsertFormat = `INSERT INTO log_table ( "id", "body") VALUES ( %d ,'%s');`
+	dbDeleteFormat = `DELETE FROM user_table WHERE name = %s;`
 )
 
 type Repository struct {
@@ -49,22 +47,6 @@ func New() *Repository {
 	return &repo
 }
 
-func (repo *Repository) AddLog(id int, log string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	dbInsertRequest := fmt.Sprintf(clickHouseInsertFormat, id, log)
-
-	_, err := repo.DbStruct.ExecContext(
-		ctx,
-		dbInsertRequest,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (repo *Repository) AddUser(user *pb.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -81,11 +63,11 @@ func (repo *Repository) AddUser(user *pb.User) error {
 	return nil
 }
 
-func (repo *Repository) DeleteUser(id int32) error {
+func (repo *Repository) DeleteUser(name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	dbDeleteRequest := fmt.Sprintf(dbDeleteFormat, id)
+	dbDeleteRequest := fmt.Sprintf(dbDeleteFormat, name)
 
 	_, err := repo.DbStruct.ExecContext(
 		ctx,
