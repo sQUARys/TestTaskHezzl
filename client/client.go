@@ -28,26 +28,31 @@ func main() {
 	//Special request to Create New User
 	createRequest := &pb.CreateUserRequest{
 		User: &pb.User{
-			Id:   2,
-			Name: "John",
+			Id:   3,
+			Name: "Maks",
 		},
 	}
 
 	//Special request to Delete User
-	//deleteRequest := &pb.DeleteUserRequest{
-	//	Id: 2,
-	//}
+	deleteRequest := &pb.DeleteUserRequest{
+		Name: "Maks",
+	}
 
 	//Special request for Get List Users
 	listRequest := &pb.ListUserRequest{}
 
 	createResp, err := client.CreateUser(ctx, createRequest)
-	//deleteResp, err := client.DeleteUser(ctx, deleteRequest)
 	listResp, err := client.ListUser(ctx, listRequest)
+	deleteResp, err := client.DeleteUser(ctx, deleteRequest)
+	listResp1, err := client.ListUser(ctx, listRequest)
 
 	if err != nil {
 		grpclog.Fatalf("fail to dial: %v", err)
 	}
 
-	fmt.Println(createResp, listResp)
+	fmt.Println("CreteResp : ", createResp)
+	fmt.Println("ListResp before delete : ", listResp)
+	fmt.Println("DeleteResp: ", deleteResp)
+	fmt.Println("ListResp after delete : ", listResp1)
+
 }

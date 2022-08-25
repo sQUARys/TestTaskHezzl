@@ -35,13 +35,13 @@ func main() {
 
 	service := services.New(db, c)
 
+	wg.Add(1)
+	go service.Start(wg)
+
 	kfk := kafka.New()
 
 	wg.Add(1)
 	go kfk.Start(wg)
-
-	wg.Add(1)
-	go service.Start(wg)
 
 	controller := controllers.New(service)
 	controller.Start()
