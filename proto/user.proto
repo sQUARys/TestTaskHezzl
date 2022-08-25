@@ -17,7 +17,7 @@ message CreateUserResponse {
 
 
 message DeleteUserRequest {
-  int32 id = 1;
+  string name = 1;
 }
 
 message DeleteUserResponse {

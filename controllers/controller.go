@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"fmt"
 	pb "github.com/sQUARys/TestTaskHezzl/proto"
+	"github.com/sQUARys/TestTaskHezzl/services"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -11,25 +11,12 @@ import (
 
 type Controller struct {
 	pb.UnimplementedUserServiceServer
-	repo  Repository
-	cache Cache
+	Service services.Service
 }
 
-type Repository interface {
-	AddUser(user *pb.User) error
-	DeleteUser(name string) error
-}
-
-type Cache interface {
-	SetUser(user pb.User) error
-	GetUser(key string) (pb.User, error)
-	GetUsers() ([]*pb.User, error)
-	DeleteUser(name string)
-}
-
-func New(repo Repository) *Controller {
+func New(service *services.Service) *Controller {
 	return &Controller{
-		repo:
+		Service: *service,
 	}
 }
 
@@ -41,24 +28,14 @@ func (ctr *Controller) Start() {
 	options := []grpc.ServerOption{}
 	server := grpc.NewServer(options...)
 
-	pb.RegisterUserServiceServer(server, &Server{
-		repo:  db,
-		cache: c,
+	pb.RegisterUserServiceServer(server, &Controller{
+		Service: ctr.Service,
 	})
 	server.Serve(listener)
 }
 
 func (ctr *Controller) CreateUser(ctx context.Context, request *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	err := ctr.repo.AddUser(request.User)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = ctr.cache.SetUser(*request.User)
-	if err != nil {
-		return nil, err
-	}
+	ctr.Service.AddUser(*request.User)
 
 	return &pb.CreateUserResponse{
 		User: request.User,
@@ -67,12 +44,12 @@ func (ctr *Controller) CreateUser(ctx context.Context, request *pb.CreateUserReq
 }
 
 func (ctr *Controller) DeleteUser(ctx context.Context, request *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-	ctr.repo.DeleteUser(request.Id)
+	ctr.Service.DeleteUser(request.Name)
 	return nil, nil
 }
 
 func (ctr *Controller) ListUser(ctx context.Context, request *pb.ListUserRequest) (*pb.ListUserResponse, error) {
-	Users, err := ctr.cache.GetUsers()
+	Users, err := ctr.Service.Cache.GetUsers()
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	pb "github.com/sQUARys/TestTaskHezzl/proto"
 	"log"
+	"sync"
 )
 
 var (
@@ -18,8 +19,8 @@ var (
 )
 
 type Service struct {
-	repo ordersRepository
-	c    cache
+	repo  ordersRepository
+	Cache cache
 }
 
 type cache interface {
@@ -36,24 +37,26 @@ type ordersRepository interface {
 
 func New(repo ordersRepository, cache cache) *Service {
 	return &Service{
-		repo: repo,
-		c:    cache,
+		repo:  repo,
+		Cache: cache,
 	}
 }
 
-func (serv *Service) Start() {
+// This func was added to demonstate working all methods with Postgres and Redis
+func (serv *Service) Start(wg sync.WaitGroup) {
+	defer wg.Done()
 
 	serv.AddUser(newUser1)
 	serv.AddUser(newUser2)
 
-	user, err := serv.c.GetUser(newUser1.Name)
+	user, err := serv.Cache.GetUser(newUser1.Name)
 	if err != nil {
 		log.Println("Error in service : ", err)
 	}
 
 	fmt.Println(fmt.Sprintf("GetUser method. ID : %d , Name : %s", user.Id, user.Name))
 
-	users, err := serv.c.GetUsers()
+	users, err := serv.Cache.GetUsers()
 	if err != nil {
 		log.Println("Error in service : ", err)
 	}
@@ -61,7 +64,7 @@ func (serv *Service) Start() {
 
 	serv.DeleteUser(newUser1.Name)
 
-	users, err = serv.c.GetUsers()
+	users, err = serv.Cache.GetUsers()
 	if err != nil {
 		log.Println("Error in service : ", err)
 	}
@@ -71,10 +74,10 @@ func (serv *Service) Start() {
 
 func (serv *Service) AddUser(user pb.User) {
 	serv.repo.AddUser(&user)
-	serv.c.AddUser(user)
+	serv.Cache.AddUser(user)
 }
 
 func (serv *Service) DeleteUser(name string) {
 	serv.repo.DeleteUser(name)
-	serv.c.DeleteUser(name)
+	serv.Cache.DeleteUser(name)
 }
