@@ -4,46 +4,13 @@ import (
 	"fmt"
 	"github.com/segmentio/kafka-go"
 	"golang.org/x/net/context"
+	"sync"
 )
 
 const (
 	topic         = "new_topic"
 	brokerAddress = "192.168.1.103:9092"
 )
-
-//CREATE TABLE log_queue (
-//readings_id Int32,
-//time DateTime,
-//temperature Decimal(5,2)
-//)
-//ENGINE = Kafka
-//SETTINGS kafka_broker_list = '192.168.1.103:9092',
-//kafka_topic_list = 'message_log',
-//kafka_group_name = 'my-group',
-//kafka_format = 'SQLInsert';
-
-//CREATE TABLE logs (
-//readings_id Int32 Codec(DoubleDelta, LZ4),
-//time DateTime Codec(DoubleDelta, LZ4),
-//date ALIAS toDate(time),
-//temperature Decimal(5,2) Codec(T64, LZ4)
-//) Engine = MergeTree
-//PARTITION BY toYYYYMM(time)
-//ORDER BY (readings_id, time);
-//
-//CREATE TABLE log2 (
-//value String,
-//) Engine = MergeTree
-//PRIMARY KEY (value);
-
-//CREATE TABLE logsSec_queue (
-//value String
-//)
-//ENGINE = Kafka
-//SETTINGS kafka_broker_list = '192.168.1.103:9092',
-//kafka_topic_list = 'new_topic',
-//kafka_group_name = 'my-group',
-//kafka_format = 'Vertical';
 
 type Kafka struct {
 	writer *kafka.Writer
@@ -52,13 +19,18 @@ type Kafka struct {
 
 func New() *Kafka {
 	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{brokerAddress},
-		Topic:   topic,
+		Brokers:     []string{brokerAddress},
+		Topic:       topic,
+		Logger:      kafka.LoggerFunc(logf),
+		ErrorLogger: kafka.LoggerFunc(logf),
 	})
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{brokerAddress},
-		Topic:   topic,
-		GroupID: "my-group",
+		Brokers:     []string{brokerAddress},
+		Topic:       topic,
+		GroupID:     "test-consumer-group",
+		Partition:   0,
+		Logger:      kafka.LoggerFunc(logf),
+		ErrorLogger: kafka.LoggerFunc(logf),
 	})
 
 	return &Kafka{
@@ -67,7 +39,16 @@ func New() *Kafka {
 	}
 }
 
-func (k *Kafka) ReadLog(ctx context.Context) error {
+func (k *Kafka) Start(wg sync.WaitGroup) {
+	defer wg.Done()
+
+	ctx := context.Background()
+
+	k.WriteText("Hello from kafka", ctx)
+	k.ReadText(ctx)
+}
+
+func (k *Kafka) ReadText(ctx context.Context) error {
 
 	msg, err := k.reader.ReadMessage(ctx)
 	if err != nil {
@@ -78,7 +59,7 @@ func (k *Kafka) ReadLog(ctx context.Context) error {
 	return nil
 }
 
-func (k *Kafka) WriteLog(log string, ctx context.Context) error {
+func (k *Kafka) WriteText(log string, ctx context.Context) error {
 
 	err := k.writer.WriteMessages(ctx, kafka.Message{
 		Value: []byte(log),
@@ -87,4 +68,9 @@ func (k *Kafka) WriteLog(log string, ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func logf(msg string, a ...interface{}) {
+	fmt.Printf("Log Kafka :"+msg, a...)
+	fmt.Println()
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/sQUARys/TestTaskHezzl/cache"
 	"github.com/sQUARys/TestTaskHezzl/controllers"
+	"github.com/sQUARys/TestTaskHezzl/kafka"
 	"github.com/sQUARys/TestTaskHezzl/repositories"
 	"github.com/sQUARys/TestTaskHezzl/services"
 	"sync"
@@ -26,16 +27,20 @@ import (
 //6. Добавление логов в clickHouse делать через очередь Kafka
 
 func main() {
+
 	var wg sync.WaitGroup
 
 	db := repositories.New()
 	c := cache.New()
-	//kfk := kafka.New()
 
 	service := services.New(db, c)
 
-	wg.Add(1)
+	kfk := kafka.New()
 
+	wg.Add(1)
+	go kfk.Start(wg)
+
+	wg.Add(1)
 	go service.Start(wg)
 
 	controller := controllers.New(service)
