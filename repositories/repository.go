@@ -49,16 +49,6 @@ func New() *Repository {
 	return &repo
 }
 
-func NewClickH() *Repository {
-	db, err := sql.Open("clickhouse", "tcp://127.0.0.1:9000?username=&compress=true&debug=true")
-	checkErr(err)
-	checkErr(db.Ping())
-
-	return &Repository{
-		DbStruct: db,
-	}
-}
-
 func (repo *Repository) AddLog(id int, log string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -105,10 +95,4 @@ func (repo *Repository) DeleteUser(id int32) error {
 		return err
 	}
 	return nil
-}
-
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
