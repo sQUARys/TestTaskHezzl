@@ -1,8 +1,10 @@
 package services
 
 import (
+	"bytes"
 	"fmt"
 	pb "github.com/sQUARys/TestTaskHezzl/proto"
+	"golang.org/x/net/context"
 	"log"
 	"sync"
 )
@@ -16,11 +18,33 @@ var (
 		Id:   2,
 		Name: "Dmitrii",
 	}
+
+	bufError bytes.Buffer
+	bufUser  bytes.Buffer
+
+	loggerError = log.New(&bufError, "Error: ", log.Lshortfile)
+	loggerUser  = log.New(&bufUser, "User : ", log.Lshortfile)
+
+	loggingError = func(body string) {
+		loggerError.Output(2, body)
+	}
+	loggingUser = func(body string) {
+		loggerUser.Output(3, body)
+	}
+
+	ctx = context.Background()
 )
 
 type Service struct {
 	repo  ordersRepository
 	Cache cache
+	Kafka kafka
+}
+
+type kafka interface {
+	Start(wg sync.WaitGroup)
+	ReadText(ctx context.Context) error
+	WriteText(log string, ctx context.Context) error
 }
 
 type cache interface {
@@ -35,10 +59,11 @@ type ordersRepository interface {
 	DeleteUser(key string) error
 }
 
-func New(repo ordersRepository, cache cache) *Service {
+func New(repo ordersRepository, cache cache, kfk kafka) *Service {
 	return &Service{
 		repo:  repo,
 		Cache: cache,
+		Kafka: kfk,
 	}
 }
 
@@ -49,16 +74,21 @@ func (serv *Service) Start(wg sync.WaitGroup) {
 	serv.AddUser(newUser1)
 	serv.AddUser(newUser2)
 
+	loggingUser(fmt.Sprintf("Id : %d  , Name : %s", newUser1.Id, newUser1.Name))
+	serv.Kafka.WriteText("Add "+bufUser.String(), ctx)
+
 	user, err := serv.Cache.GetUser(newUser1.Name)
 	if err != nil {
-		log.Println("Error in service : ", err)
+		loggingError(err.Error())
+		serv.Kafka.WriteText(bufError.String(), ctx)
 	}
 
 	fmt.Println(fmt.Sprintf("GetUser method. ID : %d , Name : %s", user.Id, user.Name))
 
 	users, err := serv.Cache.GetUsers()
 	if err != nil {
-		log.Println("Error in service : ", err)
+		loggingError(err.Error())
+		serv.Kafka.WriteText(bufError.String(), ctx)
 	}
 	fmt.Println("GetUsers method before deleting: ", users)
 
@@ -66,7 +96,8 @@ func (serv *Service) Start(wg sync.WaitGroup) {
 
 	users, err = serv.Cache.GetUsers()
 	if err != nil {
-		log.Println("Error in service : ", err)
+		loggingError(err.Error())
+		serv.Kafka.WriteText(bufError.String(), ctx)
 	}
 	fmt.Println("GetUsers method after deleting: ", users)
 
